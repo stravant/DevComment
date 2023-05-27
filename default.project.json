@@ -1,0 +1,15 @@
+{
+	"name": "DevComment v1.0",
+	"tree": {
+		"$className": "Folder",
+		"Src": {
+			"$path": "src"
+		},
+		"Packages": {
+			"$path": "Packages"
+		},
+		"loader": {
+			"$path": "loader.server.lua"
+		}
+	}
+}

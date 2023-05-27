@@ -1,0 +1,14 @@
+{
+	// See https://go.microsoft.com/fwlink/?LinkId=733558
+	// for the documentation about the tasks.json format
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "echo",
+			"type": "shell",
+			"group": "build",
+			"command": ["rojo", "build", ".", "--output",
+				"\"%localappdata%\\Roblox\\Plugins\\DevComment v1.0.rbxmx\""]
+		}
+	]
+}

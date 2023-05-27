@@ -1,0 +1,1 @@
+{"name":"maid","className":"ModuleScript","filePaths":["src\\init.lua","default.project.json"],"children":[{"name":"Maid","className":"ModuleScript","filePaths":["src\\Maid.lua"]},{"name":"MaidTaskUtils","className":"ModuleScript","filePaths":["src\\MaidTaskUtils.lua"]}]}
