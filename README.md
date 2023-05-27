@@ -2,13 +2,15 @@
 
 Add, edit, and remove comments on 3d space objects in a Roblox place in Edit, testing, or even in a live game, and have them reflected back to your editing sessions.
 
-<img>DevForumSplash.png</img>
-
 Plugin in Roblox marketplace: https://create.roblox.com/marketplace/asset/13437876391/Stravant-DevComment
 
 DevForum discussion thread: https://devforum.roblox.com/t/stravant-devcomment-sync-3d-space-comments-between-edit-test-and-live-games/2394717
 
+![DevComment](https://github.com/stravant/DevComment/blob/master/images/DevForumSplash.png?raw=true)
+
 # Structure
+
+Interesting parts of the plugin structure:
 
 ## Hot reloader
 
