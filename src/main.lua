@@ -40,22 +40,40 @@ return function(plugin: Plugin)
 		loggedInUsername = Players:GetNameFromUserIdAsync(StudioService:GetUserId())
 	end)
 
+	local setupDialog;
 	local commentPlacer = StudioCommentPlacer.new(plugin, commentScreenGui)
 	function onMainButtonClicked()
 		sharedToolbarSettings.Button:SetActive(true)
-		if commentPlacer:placeComment(loggedInUsername) then
-			sharedToolbarSettings.Button:SetActive(false)
+
+		-- If setup is needed when pressing the button, show the setup dialog
+		-- instead of adding a comment.
+		if SetupDialog.needsSetup() then
+			if not setupDialog then
+				setupDialog = SetupDialog.new(function()
+					setupDialog:Destroy()
+					setupDialog = nil
+					if commentPlacer:placeComment(loggedInUsername) then
+						sharedToolbarSettings.Button:SetActive(false)
+					end
+				end)
+			end
+		else
+			if commentPlacer:placeComment(loggedInUsername) then
+				sharedToolbarSettings.Button:SetActive(false)
+			end
 		end
+
 	end
 	local deactivationConnection = plugin.Deactivation:Connect(function()
 		sharedToolbarSettings.Button:SetActive(false)
 	end)
 
-	-- If we need to insert a copy of the runtime, show the dialog requesting
-	-- permission to do so (we need script injection permissions to do this)
-	local setupDialog;
-	if SetupDialog.needsSetup() then
-		setupDialog = SetupDialog.new()
+	-- Do we need to update?
+	if SetupDialog.needsUpdate() then
+		setupDialog = SetupDialog.new(function()
+			setupDialog:Destroy()
+			setupDialog = nil
+		end)
 	end
 
 	-- Consume the journal in edit mode

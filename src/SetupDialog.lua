@@ -34,6 +34,15 @@ function SetupDialog.needsUpdate()
 	return existing and existing:GetAttribute("Version") < Version.RUNTIME_VERSION
 end
 
+local function currentVersion()
+	local existing = ReplicatedStorage:FindFirstChild("DevComment")
+	if existing then
+		return existing:GetAttribute("Version")
+	else
+		return 0
+	end
+end
+
 local RuntimeElements = {
 	"Version",
 	"bind",
@@ -90,12 +99,14 @@ local TextColor = Theme:GetColor(Enum.StudioStyleGuideColor.MainText)
 local ButtonColor = Theme:GetColor(Enum.StudioStyleGuideColor.DialogMainButton)
 
 local MAIN_TEXT =
-"Setup DevComment for this game? This will insert a runtime into ReplicatedStorage " ..
-"which allows comments to be displayed, added, and edited in testing or in the " ..
+"Setup DevComment for runtime use in this place?\n\n" ..
+"Pressing install will insert a runtime into ReplicatedStorage which allows " ..
+"comments to be displayed, added, and edited in testing or in a " ..
 "live game. The additions and changes will be replicated back to the next or current "..
 "editing session via DataStores.\n\n" ..
 "Developers who opened the place with the plugin installed will be able to see " ..
-"and add comments. Additional testers who haven't can be manually be added."
+"and add comments. Additional testers who haven't can be manually be added.\n\n" ..
+"Pressing No Thanks will mean that you can only add and view comments in Edit mode."
 
 local UPDATE_TEXT =
 "Your DevComment runtime must be updated, do you want to update it now?"
@@ -103,8 +114,9 @@ local UPDATE_TEXT =
 local INJECTION_NOTE =
 "Note: You will be asked for script injection permission if you haven't granted it yet."
 
-function SetupDialog.new()
+function SetupDialog.new(completedFunc: () -> ())
 	local self = setmetatable({}, SetupDialog)
+	self._completedFunc = completedFunc
 
 	local screen = Instance.new("ScreenGui")
 	screen.Name = "DevCommentSetup"
@@ -154,6 +166,59 @@ function SetupDialog.new()
 	mainText.Parent = vertical
 	self._mainText = mainText
 
+	local layoutIndex = 3
+	if SetupDialog.needsUpdate() then
+		local updateBits = {}
+		for version = Version.RUNTIME_VERSION, currentVersion(), -1 do
+			local updates = Version.UpdateLog[version]
+			for _, update in updates do
+				table.insert(updateBits, update)
+			end
+		end
+		local updatesFrame = Instance.new("Frame")
+		updatesFrame.Name = "UpdatesFrame"
+		updatesFrame.BackgroundTransparency = 1
+		updatesFrame.AutomaticSize = Enum.AutomaticSize.Y
+		updatesFrame.LayoutOrder = layoutIndex
+		updatesFrame.Size = UDim2.fromScale(1, 0)
+		layoutIndex += 1
+		updatesFrame.Parent = vertical
+
+		local padding = Instance.new("UIPadding")
+		padding.PaddingLeft = UDim.new(0, 20)
+		padding.Parent = updatesFrame
+
+		local layout = Instance.new("UIListLayout")
+		layout.FillDirection = Enum.FillDirection.Vertical
+		layout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+		layout.SortOrder = Enum.SortOrder.LayoutOrder
+		layout.Padding = UDim.new(0, 2)
+		layout.Parent = updatesFrame
+
+		if #updateBits > 6 then
+			local overflow = #updateBits - 6
+			for i = 7, #updateBits do
+				updateBits[i] = nil
+			end
+			updateBits[7] = `...and {overflow} more.`
+		end
+		for i, updateText in updateBits do
+			local versionText = Instance.new("TextLabel")
+			versionText.Name = "VersionText"
+			versionText.Text = "•" .. updateText
+			versionText.Font = Enum.Font.Arial
+			versionText.TextColor3 = TextColor
+			versionText.BackgroundTransparency = 1
+			versionText.TextSize = 16
+			versionText.TextWrapped = true
+			versionText.TextXAlignment = Enum.TextXAlignment.Left
+			versionText.AutomaticSize = Enum.AutomaticSize.XY
+			versionText.LayoutOrder = layoutIndex
+			layoutIndex += 1
+			versionText.Parent = updatesFrame
+		end
+	end
+
 	local injectionText = Instance.new("TextLabel")
 	injectionText.Name = "InjectionText"
 	injectionText.Text = INJECTION_NOTE
@@ -164,7 +229,8 @@ function SetupDialog.new()
 	injectionText.TextWrapped = true
 	injectionText.TextXAlignment = Enum.TextXAlignment.Center
 	injectionText.AutomaticSize = Enum.AutomaticSize.XY
-	injectionText.LayoutOrder = 2
+	injectionText.LayoutOrder = layoutIndex
+	layoutIndex += 1
 	injectionText.Parent = vertical
 	self._injectionText = injectionText
 
@@ -172,7 +238,8 @@ function SetupDialog.new()
 	buttons.Name = "ButtonList"
 	buttons.BackgroundTransparency = 1
 	buttons.AutomaticSize = Enum.AutomaticSize.XY
-	buttons.LayoutOrder = 3
+	buttons.LayoutOrder = layoutIndex
+	layoutIndex += 1
 	buttons.Parent = vertical
 
 	local buttonLayout = Instance.new("UIListLayout")
@@ -240,6 +307,7 @@ end
 function SetupDialog:_performSetup()
 	if SetupDialog.doSetup() then
 		self._screen:Destroy()
+		self._completedFunc()
 	else
 		self:_requestPermission()
 	end
@@ -248,6 +316,7 @@ end
 function SetupDialog:_declineSetup()
 	ReplicatedStorage:SetAttribute(SetupDialog.DeclinedSetupAttribute, true)
 	self._screen:Destroy()
+	self._completedFunc()
 end
 
 function SetupDialog:Destroy()

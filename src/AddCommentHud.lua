@@ -12,12 +12,12 @@ local BackgroundColor, BorderColor, TextColor, ButtonColor;
 BackgroundColor = Color3.fromRGB(40, 40, 40)
 BorderColor = Color3.fromRGB(0, 0, 0)
 TextColor = Color3.fromRGB(200, 200, 200)
-ButtonColor = Color3.fromRGB(0, 162, 255)
+ButtonColor = Color3.fromRGB(0, 90, 143)
 
-local MAIN_TEXT = "DevComment"
-local CANCEL_TEXT = "Click on something to comment on it..."
+local MAIN_TEXT = "DevCmnt"
+local CANCEL_TEXT = "Click on something\nto comment on it..."
 
-function AddCommentHud.new()
+function AddCommentHud.new(hideFunction: () -> ())
 	local self = setmetatable({}, AddCommentHud)
 
 	local screen = Instance.new("ScreenGui")
@@ -37,17 +37,18 @@ function AddCommentHud.new()
 	stroke.Parent = vertical
 
 	local padding = Instance.new("UIPadding")
-	padding.PaddingBottom = UDim.new(0, 10)
-	padding.PaddingLeft = UDim.new(0, 10)
-	padding.PaddingRight = UDim.new(0, 10)
-	padding.PaddingTop = UDim.new(0, 10)
+	local paddingAmount = 4
+	padding.PaddingBottom = UDim.new(0, paddingAmount)
+	padding.PaddingLeft = UDim.new(0, paddingAmount)
+	padding.PaddingRight = UDim.new(0, paddingAmount)
+	padding.PaddingTop = UDim.new(0, paddingAmount)
 	padding.Parent = vertical
 
 	local layout = Instance.new("UIListLayout")
 	layout.FillDirection = Enum.FillDirection.Vertical
 	layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	layout.SortOrder = Enum.SortOrder.LayoutOrder
-	layout.Padding = UDim.new(0, 10)
+	layout.Padding = UDim.new(0, 4)
 	layout.Parent = vertical
 
 	local mainText = Instance.new("TextLabel")
@@ -63,6 +64,19 @@ function AddCommentHud.new()
 	mainText.LayoutOrder = 1
 	mainText.Parent = vertical
 	self._mainText = mainText
+	
+	if not UserInputService.TouchEnabled then
+		local toggleText = Instance.new("TextLabel")
+		toggleText.Name = "ToggleText"
+		toggleText.Text = "<b>Tab:</b> Toggle"
+		toggleText.AutomaticSize = Enum.AutomaticSize.XY
+		toggleText.RichText = true
+		toggleText.BackgroundTransparency = 1
+		toggleText.TextColor3 = TextColor
+		toggleText.TextSize = 8
+		toggleText.LayoutOrder = 2
+		toggleText.Parent = vertical
+	end
 
 	local buttons = Instance.new("Frame")
 	buttons.Name = "ButtonList"
@@ -72,7 +86,7 @@ function AddCommentHud.new()
 	buttons.Parent = vertical
 
 	local buttonLayout = Instance.new("UIListLayout")
-	buttonLayout.FillDirection = Enum.FillDirection.Horizontal
+	buttonLayout.FillDirection = Enum.FillDirection.Vertical
 	buttonLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	buttonLayout.SortOrder = Enum.SortOrder.LayoutOrder
 	buttonLayout.Padding = UDim.new(0, 10)
@@ -82,15 +96,16 @@ function AddCommentHud.new()
 		local button = Instance.new("TextButton")
 		button.TextSize = 16
 		button.TextColor3 = TextColor
-		button.Font = Enum.Font.Arial
+		button.FontFace = Font.new("Arial", Enum.FontWeight.SemiBold)
 		button.BackgroundColor3 = ButtonColor
 		button.AutomaticSize = Enum.AutomaticSize.XY
 
 		local padding = Instance.new("UIPadding")
-		padding.PaddingBottom = UDim.new(0, 8)
-		padding.PaddingLeft = UDim.new(0, 8)
-		padding.PaddingRight = UDim.new(0, 8)
-		padding.PaddingTop = UDim.new(0, 8)
+		local paddingAmount = 6
+		padding.PaddingBottom = UDim.new(0, paddingAmount)
+		padding.PaddingLeft = UDim.new(0, paddingAmount)
+		padding.PaddingRight = UDim.new(0, paddingAmount)
+		padding.PaddingTop = UDim.new(0, paddingAmount)
 		padding.Parent = button
 
 		local corner = Instance.new("UICorner")
@@ -99,11 +114,22 @@ function AddCommentHud.new()
 
 		return button
 	end
+
+	if UserInputService.TouchEnabled then
+		local hideButton = makeButton()
+		hideButton.Name = "HideButton"
+		hideButton.Text = "Hide"
+		hideButton.LayoutOrder = 1
+		hideButton.Parent = buttons
+		hideButton.MouseButton1Click:Connect(function()
+			hideFunction()
+		end)
+	end
 	
 	local yesButton = makeButton()
 	yesButton.Name = "YesButton"
-	yesButton.Text = "Add Comment"
-	yesButton.LayoutOrder = 1
+	yesButton.Text = "+Comment"
+	yesButton.LayoutOrder = 2
 	yesButton.Parent = buttons
 	yesButton.MouseButton1Click:Connect(function()
 		-- Defer needed so that the mouse up we connect in beginAdding doesn't
@@ -117,7 +143,7 @@ function AddCommentHud.new()
 	local cancelButton = makeButton()
 	cancelButton.Name = "CancelButton"
 	cancelButton.Text = "Cancel"
-	cancelButton.LayoutOrder = 2
+	cancelButton.LayoutOrder = 3
 	cancelButton.Parent = buttons
 	cancelButton.Visible = false
 	cancelButton.MouseButton1Click:Connect(function()
@@ -125,7 +151,12 @@ function AddCommentHud.new()
 	end)
 	self._cancelButton = cancelButton
 
-	screen.Parent = Players.LocalPlayer.PlayerGui
+	if Players.LocalPlayer then
+		screen.Parent = Players.LocalPlayer.PlayerGui
+	else
+		-- For testing convinience
+		screen.Parent = game:GetService("CoreGui")
+	end
 	self._screen = screen
 
 	return self

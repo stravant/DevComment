@@ -34,6 +34,7 @@ else
 end
 
 local BackgroundColor, BorderColor, TextColor;
+local ButtonColor = Color3.fromRGB(0, 116, 189)
 if RunService:IsRunning() then
 	BackgroundColor = Color3.fromRGB(40, 40, 40)
 	BorderColor = Color3.fromRGB(0, 0, 0)
@@ -49,11 +50,11 @@ local EDIT_BUTTONS = {
 	{
 		name = "EditButton",
 		icon = "rbxassetid://12088489240",
-		color = TextColor,
+		color = ButtonColor,
 	},
 	{
 		name = "DeleteButton",
-		icon = "rbxassetid://6710235956",
+		icon = "rbxassetid://8589294669", --"rbxassetid://6710235956",
 		color =Color3.fromRGB(200, 0, 0),
 	},
 	-- {
@@ -114,6 +115,7 @@ local function createBillboard(comment: StringValue, onClicked)
 	end)
 
 	local editFrame = Instance.new("Frame")
+	editFrame.Active = true
 	editFrame.Name = "EditFrame"
 	editFrame.BackgroundColor3 = BackgroundColor
 	editFrame.Position = UDim2.fromScale(1, 0)
